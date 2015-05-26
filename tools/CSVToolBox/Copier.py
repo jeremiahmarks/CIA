@@ -3,7 +3,7 @@
 # @Author: Jeremiah Marks
 # @Date:   2015-05-24 16:10:08
 # @Last Modified 2015-05-26
-# @Last Modified time: 2015-05-26 11:03:13
+# @Last Modified time: 2015-05-26 12:45:43
 
 import os
 import csv
@@ -30,7 +30,7 @@ class Copier(object):
 
     def act(self):
         """This will have the operating system make the path
-        to the destination, if it does not exist
+        to the destina tion, if it does not exist
         """
         self.createdestination()
         self.openfiles()
@@ -48,17 +48,30 @@ class Copier(object):
         if not os.path.isdir(destFolder):
             os.makedirs(destFolder)
 
-    def closefiles(self):
+    def openfiles(self):
+        self.openinputfile()
+        self.openoutputfile()
+    def getmanipulators():
+        self.getinputmanipulator()
+        self.getoutputmanipulator()
+    def closefiles():
+        self.closeinputfile()
+        self.closeoutputfile()
+
+    def openinputfile(self):
+        self.inputcsv=open(self.origcsv)
+    def closeinputfile(self):
         self.inputcsv.close()
+
+    def openoutputfile(self):
+        self.outputcsv=open(os.path.abspath(self.destination),'wb+')
+    def closeoutputfile(self):
         self.outputcsv.close()
 
-    def openfiles(self):
-        self.inputcsv=open(self.origcsv)
-        self.outputcsv=open(os.path.abspath(self.destination),'wb+')
-
-    def getmanipulators(self):
+    def getinputmanipulator(self):
         self.inputreader=csv.DictReader(self.inputcsv)
-        self.outputwriter=csv.DictWriter(self.outputcsv,self.inputreader.fieldnames)
+    def getoutputmanipulator(self):
+        self.outputwriter=csv.DictWriter(self.outputcsv,self.newfieldnames)
 
 class ColAdder(Copier):
     """Col. Adder will add a new columd to your CSV file and
@@ -94,7 +107,7 @@ class ColAdder(Copier):
         # writer, and have it add the headers (fieldnames)
         # to the output CSV
 
-        for eachRow in self.inputrows:
+        for eachrow in self.inputrows:
             self.outputwriter.writerow(eachRow)
             # Writing the new CSV file to file.
         self.closeoutputfile()
@@ -114,5 +127,67 @@ class ColAdder(Copier):
     def getoutputmanipulator(self):
         self.outputwriter=csv.DictWriter(self.outputcsv,self.newfieldnames)
 
-
 class ColCleaner(Copier):
+    def act(self):
+        self.createdestination()
+        self.readtomem()
+        self.columnusecount()
+        # Now that we have the number of times that each column
+        # has a value, we can find all columns that do not
+        # have a value and remove them from the column set.
+        for columnname in self.colcount.keys():
+            if self.colcount[columnname]<1:
+                trash=self.colcount.pop(columnname)
+        # We have now removed the columns whose count is
+        # less than one
+        self.newfieldnames=self.colcount.keys()
+        print self.newfieldnames
+        self.openoutputfile()
+        self.getoutputmanipulator()
+        self.outputwriter.writeheader() # I am
+        for eachrow in self.inputrows.values():
+            rowbuilder={}
+            for eachcol in self.newfieldnames:
+                rowbuilder[eachcol]=eachrow[eachcol]
+            self.outputwriter.writerow(rowbuilder)
+        self.closeoutputfile()
+
+    def readtomem(self):
+        """This method opens a CSV file and then reads each
+        row and stores the information in a self variable
+        """
+        # As I make more and more sub classes I keep seeing
+        # things that can be made more separate from the
+        # child classes.  This, for example.
+        self.openinputfile()
+        self.getinputmanipulator()
+        self.inputrows={}
+        for rowNum, eachRow in enumerate(self.inputreader):
+            self.inputrows[rowNum]=eachRow
+        self.closeinputfile()
+
+    def columnusecount(self):
+        """This method will take set a class variable called
+        "colcount" which is a dictionary that will store the
+        number of times that each column has a value.
+
+        It will parse through each record in the file and
+        make sure that the column exists in the variable.
+        If the column name is not a key in the dictionary,
+        it will create a key with the same name as the column
+        and set its value to zero.
+
+        After it has ensure that the value does exists as a
+        key it will check if there are any values in that
+        row/column. If it finds something, it will increment
+        the counter.
+        """
+        self.colcount={}
+        for eachrow in self.inputrows.keys():
+            for eachcolumn in self.inputrows[eachrow]:
+                if eachcolumn not in self.colcount.keys():
+                    self.colcount[eachcolumn]=0
+                if len(self.inputrows[eachrow][eachcolumn].strip())>0:
+                    self.colcount[eachcolumn]+=1
+
+
