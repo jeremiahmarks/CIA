@@ -3,7 +3,7 @@
 # @Author: Jeremiah Marks
 # @Date:   2015-05-24 14:59:00
 # @Last Modified 2015-05-24
-# @Last Modified time: 2015-05-24 18:13:12
+# @Last Modified time: 2015-05-27 18:03:34
 import os
 import sqlite3
 import datetime
@@ -12,63 +12,40 @@ import CIA.tools.CSVToolBox as csvTools
 import random
 import string
 
+
+# This module provides a file manager, basically a worker
+# who solely exists to keep files in order and backed up.
+# This will also be able to do other tasks related to data
+# tracking and maintenance, however its basic purpose will
+# be to manage files.
+
+############################################################
+## These store the absolute path to where ever the file is.
+## The application will start by storing all data in this
+## folder, however that decision will need to be examined
+## again if the application is developed to support
+## multiple users from the same install directory
+
+pathtofile=__file__
+projectsfolder=os.path.dirname(os.path.abspath(pathtofile))
+
+############################################################
+##
+## using a timestamp seems like the easiest way to avoid
+## writing over other files with the same name, in the same
+## project
+
 def timeStamp():
     return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
-
-
-pathToFile=__file__
-pathToFolder=os.path.abspath(pathToFile)
-
 class Worker(object):
-    def __init__(self, assignedProject):
-        self.project=assignedProject
-        self.projectDBPath=os.path.join(os.path.dirname(pathToFolder),  assignedProject)
-        self.projectDBFile=os.path.join(self.projectDBPath, assignedProject + ".sqlite")
-        self.lastFile=self.projectDBFile
-        if not os.path.exists(self.projectDBPath):
-            os.makedirs(self.projectDBPath)
-        if not os.path.exists(self.projectDBFile):
-            # offer to create common tables for project
-            pass
+    """
+    This class will provide the functionality to manage
+    the files that are part of individual projects. It may
+    be subclassed or reused to implement a class that can
+    interact with the data in the files, but that is
+    currently merely an option.
+    """
+    def __init__(self, assignedproject):
+        self.project=assignedproject
 
-    def getDBPath(self):
-        return self.projectDBPath
-
-    def moveFileToStorage(self,pathToFile):
-        # example:
-            # the pathToFile should probably come from 
-            # os.path.abspath or similar
-            # input = "/home/jlmarks/file.csv"
-            # os.path.basename(input))
-            # 'file.csv'
-            # os.path.dirname(input)
-            # '/home/jlmarks'
-
-        ts=timeStamp()
-        filename=os.path.basename(pathToFile)
-        if filename.rfind('.')>0:
-            newName=filename[:filename.rfind('.')] + ts + filename[filename.rfind('.'):]
-        else:
-            newName=ts+filename
-        destinationFileLocation=os.path.join(self.projectDBPath,newName)
-        shutil.copyfile(pathToFile, destinationFileLocation)
-        self.lastFile=destinationFileLocation
-        return self.lastFile
-
-    def addNumberingColumnToCSV(self, pathToFile):
-        self.lastFile=csvTools.numberRows.addRowNumAsCol(pathToFile)
-        return self.lastFile
-
-    def getRandomID(self,size=6, chars=string.ascii_uppercase + string.digits):
-        # This is a slight mod of this thread on SO: 
-        #  http://stackoverflow.com/a/2257449
-        global uniques
-        if 'uniques' not in globals():
-            uniques = set()
-        while True:
-            potentialID=''.join(random.choice(chars) for _ in range(size))
-            if potentialID not in uniques:
-                uniques.add(potentialID)
-                break
-        return potentialID
