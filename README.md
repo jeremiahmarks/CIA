@@ -88,3 +88,10 @@ product ID being known (API lookup or csv file)) it will open a
 browser, upload the image, navigate to the product on the store
 front, take a screenshot, and then do the next in queue or close
 the browser.
+
+#GUI
+
+While this is something that scares me as a task, if I want 
+many people to be able to use this, I will need to put a GUI
+on it.  I will likely try to make it easy to switch between
+one gui and another by returning information from sequences
