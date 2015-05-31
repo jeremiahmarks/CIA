@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: Jeremiah Marks
 # @Date:   2015-05-24 16:10:08
-# @Last Modified 2015-05-29
-# @Last Modified time: 2015-05-29 14:09:41
+# @Last Modified 2015-05-31
+# @Last Modified time: 2015-05-31 00:15:28
 
 import os
 import csv
@@ -34,6 +34,7 @@ class Copier(object):
         """
         self.createdestination()
         self.openfiles()
+        ##self.newfieldnames=None
         self.getmanipulators()
         self.outputwriter.writeheader()
         for row in self.inputreader:
@@ -51,10 +52,10 @@ class Copier(object):
     def openfiles(self):
         self.openinputfile()
         self.openoutputfile()
-    def getmanipulators():
+    def getmanipulators(self):
         self.getinputmanipulator()
         self.getoutputmanipulator()
-    def closefiles():
+    def closefiles(self):
         self.closeinputfile()
         self.closeoutputfile()
 
@@ -71,7 +72,10 @@ class Copier(object):
     def getinputmanipulator(self):
         self.inputreader=csv.DictReader(self.inputcsv)
     def getoutputmanipulator(self):
-        self.outputwriter=csv.DictWriter(self.outputcsv,self.newfieldnames)
+        if self.newfieldnames is not None:
+            self.outputwriter=csv.DictWriter(self.outputcsv,self.newfieldnames)
+        else:
+            self.outputwriter=csv.DictWriter(self.outputcsv, self.inputreader.fieldnames)
 
     def readtomem(self):
         """This method opens a CSV file and then reads each
@@ -154,15 +158,18 @@ class ColCleaner(Copier):
                 trash=self.colcount.pop(columnname)
         # We have now removed the columns whose count is
         # less than one
-        self.newfieldnames=self.colcount.keys()
+        self.newfieldnames=[f for f in self.colcount.keys() if f is not None]
         print self.newfieldnames
         self.openoutputfile()
         self.getoutputmanipulator()
         self.outputwriter.writeheader() # I am
         for eachrow in self.inputrows.values():
             rowbuilder={}
-            for eachcol in self.newfieldnames:
-                rowbuilder[eachcol]=eachrow[eachcol]
+            if eachrow is not None:
+                for eachcol in self.newfieldnames:
+                    rowbuilder[eachcol]=eachrow[eachcol]
+            else:
+                print "Noned"
             self.outputwriter.writerow(rowbuilder)
         self.closeoutputfile()
 
@@ -198,10 +205,10 @@ class ColCleaner(Copier):
         """
         self.colcount={}
         for eachrow in self.inputrows.keys():
-            for eachcolumn in self.inputrows[eachrow]:
+            for eachcolumn in self.inputrows[eachrow].keys():
                 if eachcolumn not in self.colcount.keys():
                     self.colcount[eachcolumn]=0
-                if len(self.inputrows[eachrow][eachcolumn].strip())>0:
+                if len(self.inputrows[eachrow][eachcolumn])>0:
                     self.colcount[eachcolumn]+=1
 
 class CutMaxsize(Copier):
