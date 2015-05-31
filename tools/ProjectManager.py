@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 # @Author: jeremiah.marks
 # @Date:   2015-05-27 14:53:28
-# @Last Modified by:   jeremiah.marks
-# @Last Modified time: 2015-05-27 18:03:16
+# @Last Modified 2015-05-29
+# @Last Modified time: 2015-05-29 18:31:27
 import os
 import sqlite3
-
+import shutil
+from CIA.tools import credentials as creds
 ## This module will provide the entity that manages the
 ## project as a whole.
 ##
@@ -95,6 +96,67 @@ class PM(object):
         return self.cursor.fetchall()
 
     def createproject(self, projectname):
+        projectpath = os.path.join(currentdirectory, projectname)
+        projectCreateStatement="""INSERT INTO projects (userid, projectname, projectpath) VALUES(?, ?, ?)"""
+        self.cursor.execute(projectCreateStatement, (int(self.userid), str(projectname), str(projectpath)))
+        self.database.commit()
+        print self.selectprojects()
+
+    def loadproject(self, projectname):
+        projectpathStmt="""SELECT projectpath FROM projects WHERE projectname = ?"""
+        self.cursor.execute(projectpathStmt,(str(projectname), ))
+        projectpath=self.cursor.fetchall()[0][0]
+        return Manager(projectpath)
+        # if not os.path.exists(projectpath):
+        #     os.makedirs(projectpath)
+        # projectdb=os.path.join(projectpath, projectname + ".db")
+
+        # if not os.path.exists(projectdb):
+        #     self.database=sqlite3.connect(projectdb)
+        #     self.cursor=self.database.cursor()
+        #     createfilestablestmt="""CREATE TABLE files (id  STRING, filename STRING UNIQUE)"""
+        #     self.cursor.execute(createfilestablestmt)
+        #     self.database.commit()
+        # else:
+        #     self.database=sqlite3.connect(projectdb)
+        #     self.cursor=self.database.cursor()
+
+
+class Manager(object):
+    """This is the Manager class, it is different from the 
+    ProjectManager class in that it manages the individual 
+    projects while the ProjectManager manages the global set
+    of projects.
+    """
+    def __init__(self, pathToProject):
+        self.projectFolder=os.path.dirname(pathToProject)
+        self.databaseFile=os.path.join(pathToProject, 
+            self.projectFolder.split(os.path.sep)[-1]+'.db')
+        if not os.path.exists(self.projectFolder):
+            os.makedirs(self.projectFolder)
+        if not os.path.exists(self.databaseFile):
+            self.database=sqlite3.connect(self.databaseFile)
+            self.cursor=self.database.cursor()
+            createfilestablestmt="""CREATE TABLE files (id  STRING, filename STRING UNIQUE)"""
+            self.cursor.execute(createfilestablestmt)
+            self.database.commit()
+        else:
+            self.database=sqlite3.connect(self.databaseFile)
+            self.cursor=self.database.cursor()
+
+    def getfiles(self):
+        setfilesstmt="""SELECT id filename FROM files"""
+        self.cursor.execute(setfilesstmt)
+        return self.cursor.fetchall()
+
+    def addfile(self, pathtofile):
+        fileid=creds.getRandomID()
+        filename = os.path.basename(pathtofile)
+        print os.path.join(os.path.abspath(self.projectFolder), filename)
+        shutil.copy(pathtofile, os.path.join(os.path.abspath(self.projectFolder), filename))
+        addfiletofiles="INSERT INTO files (id, filename) VALUES (?, ?)"
+        self.cursor.execute(addfiletofiles, (fileid, filename))
+        self.database.commit()
 
 
 

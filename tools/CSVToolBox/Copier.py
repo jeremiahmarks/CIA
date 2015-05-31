@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: Jeremiah Marks
 # @Date:   2015-05-24 16:10:08
-# @Last Modified 2015-05-26
-# @Last Modified time: 2015-05-26 12:45:43
+# @Last Modified 2015-05-29
+# @Last Modified time: 2015-05-29 14:09:41
 
 import os
 import csv
@@ -72,6 +72,20 @@ class Copier(object):
         self.inputreader=csv.DictReader(self.inputcsv)
     def getoutputmanipulator(self):
         self.outputwriter=csv.DictWriter(self.outputcsv,self.newfieldnames)
+
+    def readtomem(self):
+        """This method opens a CSV file and then reads each
+        row and stores the information in a self variable
+        """
+        # As I make more and more sub classes I keep seeing
+        # things that can be made more separate from the
+        # child classes.  This, for example.
+        self.openinputfile()
+        self.getinputmanipulator()
+        self.inputrows={}
+        for rowNum, eachRow in enumerate(self.inputreader):
+            self.inputrows[rowNum]=eachRow
+        self.closeinputfile()
 
 class ColAdder(Copier):
     """Col. Adder will add a new columd to your CSV file and
@@ -190,4 +204,27 @@ class ColCleaner(Copier):
                 if len(self.inputrows[eachrow][eachcolumn].strip())>0:
                     self.colcount[eachcolumn]+=1
 
+class CutMaxsize(Copier):
+    """This will initially allow you to cut the file into
+    segments with complete rows with each no larger than
+    XMB. it will do that by reading each row and verifying 
+    that writing it would not put it over the maximum count,
+    and then either writing the line immediately, or wait
+    until the file is closed and a new one opened. 
+
+    Next iteration should allow the user to pass it a variable 
+    OrderImportant(T/F) which which would allow the program
+    to reorder the lines in the file to make the fewest files
+    possible
+    """
+    def act():
+        self.createdestination()
+        self.readtomem()
+        charsperrow=[]
+        #headings=self.inputrows.keys():
+        for eachline in self.inputrows:
+            charsinrow=0
+            for eachheading in headings:
+                charsinrow+=len(eachline[eachheading])
+            charsperrow.append(charsinrow)
 
