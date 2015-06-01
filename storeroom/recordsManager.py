@@ -2,13 +2,16 @@
 # -*- coding: utf-8 -*-
 # @Author: Jeremiah Marks
 # @Date:   2015-05-24 14:59:00
-# @Last Modified 2015-05-24
-# @Last Modified time: 2015-05-27 18:03:34
+# @Last Modified 2015-05-31
+# @Last Modified time: 2015-05-31 16:03:03
 import os
 import sqlite3
 import datetime
 import shutil
-import CIA.tools.CSVToolBox as csvTools
+try:
+    import CIA.tools.CSVToolBox as csvTools
+except ImportError:
+    import tools.CSVToolBox as csvTools
 import random
 import string
 

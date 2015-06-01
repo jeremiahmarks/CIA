@@ -3,11 +3,15 @@
 # @Author: Jeremiah Marks
 # @Date:   2015-05-24 16:10:08
 # @Last Modified 2015-05-31
-# @Last Modified time: 2015-05-31 00:15:28
+# @Last Modified time: 2015-05-31 16:02:06
 
 import os
 import csv
-import CIA.tools.credentials
+try:
+    import CIA.tools.credentials
+except ImportError:
+    import tools.credentials
+
 
 class Copier(object):
     """Extensible class (Perhaps should be a imaginary
