@@ -1,6 +1,6 @@
-Welcome to  [Project B.E.A.R.D.](./points/BEARD.md)!
+Welcome to the CIA!
 
-Here at Project B.E.A.R.D. we aim to get everyone the level and type of information that they need. 
+Here in the CIA we aim to get everyone the level and type of information that they need. 
 
 An introduction to git, setting up git, branching, pulling, pushing, etc, would be good. 
 
